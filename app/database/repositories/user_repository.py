@@ -16,13 +16,15 @@ class UserRepository:
     async def create(
         self,
         telegram_id: int,
-        full_name: str,
+        display_name: str,
         username: str | None,
+        role: str,
     ) -> BotUser:
         user = BotUser(
             telegram_id=telegram_id,
-            full_name=full_name,
+            display_name=display_name,
             username=username,
+            role=role,
         )
         self.session.add(user)
         await self.session.flush()

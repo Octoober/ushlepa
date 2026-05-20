@@ -1,10 +1,15 @@
 from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes
 
+from app.middlewares.rate_limit import rate_limit
+
 # from app.keyboards.main_menu import build_main_menu
 from app.services.service_factory import ServiceFactory
 
 
+@rate_limit(
+    key="start", cooldown=2, warning_message="Слишком часто. Подожди {seconds} сек"
+)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     message = update.effective_message
@@ -22,9 +27,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
 
     if result.is_created:
-        text = f"Привет {user.first_name}! Ты новый юзер и я добавил тебя в базу."
-        await message.reply_text(f"привет {user.username}! ты новый юзер!")
+        text = (
+            f"Привет {user.first_name}! Ты новенький?\n"
+            "Принимаю твои передачки в местный ПНД.\n"
+            "Например: картинку, видео или гифку."
+        )
     else:
-        text = f"С возвращением {user.first_name}!"
+        text = "Ты настоящий баклажан?"
 
     await message.reply_text(text=text, reply_markup=ReplyKeyboardRemove())

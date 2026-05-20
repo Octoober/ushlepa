@@ -2,9 +2,15 @@ from telegram import Update
 from telegram.ext import CallbackContext, ContextTypes
 
 from app.keyboards.submission import user_submission_confirm_keyboard
+from app.middlewares.rate_limit import rate_limit
 from app.schemas.submission_draft import MediaItemDraft, SubmissionDraft
 
 
+@rate_limit(
+    key="submission",
+    cooldown=30,
+    warning_message="Подожди еще {seconds} сек",
+)
 async def submission_media_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
