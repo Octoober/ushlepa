@@ -32,7 +32,7 @@ class UserService:
 
             return UserResult(user=user, is_created=False)
 
-        await self.user_repo.create(
+        user = await self.user_repo.create(
             telegram_id=telegram_id,
             display_name=display_name,
             username=username,

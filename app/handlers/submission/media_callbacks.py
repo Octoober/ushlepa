@@ -43,7 +43,14 @@ async def submission_confirm_callback(
     service_factory: ServiceFactory = context.bot_data["service_factory"]
 
     async with service_factory.create() as service:
-        db_user = await service.users.get_by_telegram_id(tg_user.id)
+        user_result = await service.users.get_or_create_user(
+            telegram_id=tg_user.id,
+            display_name=tg_user.full_name,
+            username=tg_user.username,
+        )
+
+        db_user = user_result.user
+
         submission = await service.submissions.create_from_draft(
             user_id=db_user.id,
             draft=draft,
