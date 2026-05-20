@@ -33,10 +33,10 @@ class UserRepository:
     async def get_or_create(
         self,
         telegram_id: int,
-        full_name: str,
+        display_name: str,
         username: str | None,
     ) -> BotUser:
         user = await self.get_by_telegram_id(telegram_id)
         if not user:
-            user = await self.create(telegram_id, full_name, username)
+            user = await self.create(telegram_id, display_name, username)
         return user
