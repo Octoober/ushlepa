@@ -4,12 +4,15 @@ from telegram.ext import ContextTypes
 from app.config.settings import settings
 from app.database.models.submission import Submission, SubmissionMedia
 from app.keyboards.submission import admin_submission_keyboard
+from app.schemas.submission_draft import SubmissionDraft
 from app.services.service_factory import ServiceFactory
+from app.states.user_states import UserState
+from app.texts.messages import ModerationMessage, SubmissionMessages
 
 
 async def submission_confirm_callback(
     update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+) -> int:
     """Обработывает нажатия на кнопки подтверждения отправки предложки.
 
     Например если пользователь нажал "отправить от моего имени" или
@@ -27,8 +30,8 @@ async def submission_confirm_callback(
     parts = (query.data or "").split(":")
 
     if parts is None or len(parts) != 3:
-        await update.reply_text("странный запрос")
-        return
+        await update.reply_text(SubmissionMessages.WRONG_PARTS)
+        return UserState.MAIN_MENU
 
     # формат callback_data: submission:confirm:public или submission:confirm:anon
     # или submission:cancel
@@ -36,8 +39,8 @@ async def submission_confirm_callback(
 
     # если черновика нет, либо отсутствует media_items
     if not draft or not draft.get("media_items"):
-        await query.edit_message_text("либо нет черновика, либо в нем нет медиа")
-        return
+        await query.edit_message_text(SubmissionMessages.WRONG_DRAFT)
+        return UserState.MAIN_MENU
 
     is_anonymous = visibility == "anon"
     service_factory: ServiceFactory = context.bot_data["service_factory"]
@@ -57,8 +60,11 @@ async def submission_confirm_callback(
             is_anonymous=is_anonymous,
         )
 
-    # context.user_data.pop("mode", None)
-    context.user_data.pop("submission_draft", None)
+    # создаем новый draft чтобы не ломать текущий контекст
+    context.user_data["submission_draft"] = SubmissionDraft(
+        caption=None,
+        media_items=[],
+    )
     context.user_data.pop("confirm_job", None)
 
     # отправляем предложку админам
@@ -67,20 +73,26 @@ async def submission_confirm_callback(
         submission=submission,
     )
 
-    await query.edit_message_text("предложка отправлена")
+    await query.edit_message_text(SubmissionMessages.SENT)
+
+    return UserState.SUBMISSION
 
 
 async def submission_cancel_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
-) -> None:
+) -> int:
     query = update.callback_query
     await query.answer()
 
-    # context.user_data.pop("mode", None)
-    context.user_data.pop("submission_draft", None)
+    context.user_data["submission_draft"] = SubmissionDraft(
+        caption=None,
+        media_items=[],
+    )
     context.user_data.pop("confirm_job", None)
-    await query.edit_message_text("отменено")
+
+    await query.edit_message_text(SubmissionMessages.CANCELLED)
+    return UserState.SUBMISSION
 
 
 async def _send_to_all_admins(
@@ -110,10 +122,12 @@ async def _send_to_admin(
 ) -> None:
     media_items = submission.media_items
 
-    display_name = submission.user.display_name
+    author = submission.user.display_name
     user_text = submission.caption
 
-    caption = f"от: {display_name}\nтекст: {user_text}"
+    caption = ModerationMessage.NEW_SUBMISSION.format(
+        author=author, user_text=user_text
+    )
 
     # если одиночное медиа - отправляем с кнопками сразу
     if len(media_items) == 1:
@@ -158,7 +172,9 @@ async def _send_to_admin(
 
         # кнопки модерации отдельным сообщением
         await context.bot.send_message(
-            chat_id=admin_id, text="предложка выше", reply_markup=keyboard
+            chat_id=admin_id,
+            text=ModerationMessage.ABOVE,
+            reply_markup=keyboard,
         )
 
 

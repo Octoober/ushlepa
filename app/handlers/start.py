@@ -1,16 +1,14 @@
-from telegram import ReplyKeyboardRemove, Update
+from telegram import Update
 from telegram.ext import ContextTypes
 
-from app.middlewares.rate_limit import rate_limit
-
-# from app.keyboards.main_menu import build_main_menu
+from app.config.settings import settings
+from app.keyboards.main_menu import build_main_menu
 from app.services.service_factory import ServiceFactory
+from app.states.user_states import UserState
+from app.texts.messages import StartMessages
 
 
-@rate_limit(
-    key="start", cooldown=2, warning_message="Слишком часто. Подожди {seconds} сек"
-)
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.effective_user
     message = update.effective_message
 
@@ -26,13 +24,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             username=user.username,
         )
 
-    if result.is_created:
-        text = (
-            f"Привет {user.first_name}! Ты новенький?\n"
-            "Принимаю твои передачки в местный ПНД.\n"
-            "Например: картинку, видео или гифку."
-        )
-    else:
-        text = "Ты настоящий баклажан?"
+    context.user_data.pop("submission_draft", None)
+    context.user_data.pop("confirm_job", None)
 
-    await message.reply_text(text=text, reply_markup=ReplyKeyboardRemove())
+    is_admin = update.effective_user.id in settings.admin_ids_list
+
+    if result.is_created:
+        text = StartMessages.GREETING_NEW.format(name=user.first_name)
+    else:
+        text = StartMessages.GREETING_RETURNING
+
+    if is_admin:
+        text += StartMessages.IS_ADMIN_SUFFIX
+
+    await message.reply_text(text=text, reply_markup=build_main_menu(is_admin=is_admin))
+
+    # начинаем с главного меню
+    return UserState.MAIN_MENU

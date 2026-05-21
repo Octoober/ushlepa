@@ -6,12 +6,14 @@ from telegram.ext import ContextTypes
 from app.config.settings import settings
 from app.database.models.submission import Submission
 from app.services.service_factory import ServiceFactory
+from app.texts.messages import ModerationMessage
 
 
 async def submission_admin_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
+    """Управление предложкой со стороны админа."""
     query = update.callback_query
     user = update.effective_user
 
@@ -21,7 +23,7 @@ async def submission_admin_callback(
     await query.answer()
 
     if user.id not in settings.admin_ids_list:
-        await query.answer("⛔ Нет доступа", show_alert=True)
+        await query.answer(ModerationMessage.NO_ACCESS, show_alert=True)
         return
 
     _, submission_id_str, action = query.data.split(":")
@@ -32,31 +34,30 @@ async def submission_admin_callback(
     async with service_factory.create() as services:
         if action == "queue":
             await services.submissions.queue(submission_id)
-            status_text = "✅ Добавлена в очередь"
+            status_text = ModerationMessage.QUEUED
 
         elif action == "publish":
             submission = await services.submissions.publish(submission_id)
             await publish_submission_to_channel(context, submission)
-            status_text = "🚀 Опубликована"
+            status_text = ModerationMessage.PUBLISHED
 
         elif action == "reject":
             await services.submissions.reject(submission_id)
-            status_text = "❌ Отклонена"
+            status_text = ModerationMessage.REJECTED
 
         elif action == "cancel":
             await services.submissions.cancel(submission_id)
-            status_text = "🚫 Снята с очереди"
+            status_text = ModerationMessage.REMOVE_QUEUE
 
         else:
-            await query.answer("Неизвестное действие", show_alert=True)
+            await query.answer(ModerationMessage.UNKNOWN_ACTION, show_alert=True)
             return
 
     await query.edit_message_reply_markup(reply_markup=None)
 
     if query.message is not None:
         await query.message.reply_text(
-            f"Предложка #{submission_id}: {status_text}\n"
-            f"Админ: @{user.username or user.full_name}"
+            f"Предложка #{submission_id}: {status_text}\n",
         )
 
 

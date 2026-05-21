@@ -2,53 +2,42 @@ from telegram import Update
 from telegram.ext import CallbackContext, ContextTypes
 
 from app.keyboards.submission import user_submission_confirm_keyboard
-from app.middlewares.rate_limit import rate_limit
 from app.schemas.submission_draft import MediaItemDraft, SubmissionDraft
+from app.texts.messages import SubmissionMessages
 
 
-@rate_limit(
-    key="submission",
-    cooldown=30,
-    warning_message="Подожди еще {seconds} сек",
-)
 async def submission_media_handler(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """
-    Обрабатывает файлы от юзера. Используется для предложки.
+    """Обрабатывает файлы от юзера. Используется для предложки.
 
     Срабатывает только если "mode" установлен на waiting_submission.
     После срабатываения отображает inline кнопки
-    которые формируются в build_submission_confirm_keyboard.
+    которые формируются в user_submission_confirm_keyboard.
     """
-    messgae = update.effective_message
+    message = update.effective_message
 
-    if messgae is None:
+    if message is None:
         return
 
-    # if context.user_data.get("mode") != "waiting_submission":
-    #     return
-
-    context.user_data["submission_draft"] = SubmissionDraft(
-        caprion=None,
-        media_items=[],
-    )
     draft: SubmissionDraft = context.user_data["submission_draft"]
 
-    if draft is None:
-        await messgae.reply_text("Нету draft")
-        return
-
-    if messgae.photo:
-        file_id = messgae.photo[-1].file_id
+    if message.photo:
+        file_id = message.photo[-1].file_id
         media_type = "photo"
+    elif message.video:
+        file_id = message.video.file_id
+        media_type = "video"
+    elif message.animation:
+        file_id = message.animation.file_id
+        media_type = "animation"
     else:
-        await messgae.reply_text("пока не поддерживает этот тип медиа")
+        await message.reply_text(SubmissionMessages.WRONG_INPUT)
         return
 
     # caption берется только из первого медиа
-    if not draft.get("caption") and messgae.caption:
-        draft["caption"] = messgae.caption
+    if not draft.get("caption") and message.caption:
+        draft["caption"] = message.caption
 
     draft["media_items"].append(
         MediaItemDraft(
@@ -80,7 +69,7 @@ async def submission_media_handler(
 async def _show_confirm_buttons(context: CallbackContext) -> None:
     draft: SubmissionDraft = context.job.data["submission_draft"]
     count = len(draft["media_items"])
-    text = f"получено {count} медиа. хочешь отправить предложку?"
+    text = SubmissionMessages.MEDIA_RECEIVED.format(count=count)
 
     await context.bot.send_message(
         chat_id=context.job.chat_id,
