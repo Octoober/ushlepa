@@ -9,6 +9,8 @@ from app.services.service_factory import ServiceFactory
 from app.states.user_states import UserState
 from app.texts.messages import ModerationMessage, SubmissionMessages
 
+AWAITING_CONFIRM_KEY = "submission_awaiting_confirm"
+
 
 async def submission_confirm_callback(
     update: Update, context: ContextTypes.DEFAULT_TYPE
@@ -30,8 +32,8 @@ async def submission_confirm_callback(
     parts = (query.data or "").split(":")
 
     if parts is None or len(parts) != 3:
-        await update.reply_text(SubmissionMessages.WRONG_PARTS)
-        return UserState.MAIN_MENU
+        await query.edit_message_text(SubmissionMessages.WRONG_PARTS)
+        return UserState.SUBMISSION
 
     # формат callback_data: submission:confirm:public или submission:confirm:anon
     # или submission:cancel
@@ -40,7 +42,7 @@ async def submission_confirm_callback(
     # если черновика нет, либо отсутствует media_items
     if not draft or not draft.get("media_items"):
         await query.edit_message_text(SubmissionMessages.WRONG_DRAFT)
-        return UserState.MAIN_MENU
+        return UserState.SUBMISSION
 
     is_anonymous = visibility == "anon"
     service_factory: ServiceFactory = context.bot_data["service_factory"]
@@ -65,7 +67,7 @@ async def submission_confirm_callback(
         caption=None,
         media_items=[],
     )
-    context.user_data.pop("confirm_job", None)
+    context.user_data.pop(AWAITING_CONFIRM_KEY, None)
 
     # отправляем предложку админам
     await _send_to_all_admins(
@@ -89,7 +91,7 @@ async def submission_cancel_callback(
         caption=None,
         media_items=[],
     )
-    context.user_data.pop("confirm_job", None)
+    context.user_data.pop(AWAITING_CONFIRM_KEY, None)
 
     await query.edit_message_text(SubmissionMessages.CANCELLED)
     return UserState.SUBMISSION

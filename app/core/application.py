@@ -21,6 +21,7 @@ from app.handlers.submission.media_handler import submission_media_handler
 from app.handlers.submission.navigation.menu_router import submission_menu_router
 from app.services.service_factory import ServiceFactory
 from app.states.user_states import UserState
+from app.texts.buttons import SubmissionButtons
 
 
 class BotApplication:
@@ -53,6 +54,10 @@ class BotApplication:
         conversation = ConversationHandler(
             entry_points=[
                 CommandHandler("start", start),
+                MessageHandler(
+                    filters.TEXT & ~filters.COMMAND,
+                    main_menu_router,
+                ),
             ],
             states={
                 UserState.MAIN_MENU: [

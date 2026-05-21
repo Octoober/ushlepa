@@ -15,8 +15,9 @@ async def submission_menu_router(
     text = update.message.text
 
     if text == SubmissionButtons.BACK:
+        # Полный сброс, если юзер отправил /start
         context.user_data.pop("submission_draft", None)
-        context.user_data.pop("confirm_job", None)
+        context.user_data.pop("submission_awaiting_confirm", None)
 
         is_admin = update.effective_user.id in settings.admin_ids_list
         await update.message.reply_text(

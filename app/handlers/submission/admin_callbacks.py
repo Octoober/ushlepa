@@ -27,6 +27,11 @@ async def submission_admin_callback(
         return
 
     _, submission_id_str, action = query.data.split(":")
+
+    if action not in {"queue", "publish", "reject", "cancel"}:
+        await query.answer(ModerationMessage.UNKNOWN_ACTION, show_alert=True)
+        return
+
     submission_id = int(submission_id_str)
 
     service_factory: ServiceFactory = context.bot_data["service_factory"]

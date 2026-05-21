@@ -17,9 +17,10 @@ async def submit_post_button_handler(
         return
 
     context.user_data["submission_draft"] = SubmissionDraft(
-        caprion=None,
+        caption=None,
         media_items=[],
     )
+    context.user_data.pop("submission_awaiting_confirm", None)
 
     await message.reply_text(
         SubmissionMessages.INSTRUCTION,
