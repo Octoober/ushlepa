@@ -19,9 +19,9 @@ from app.handlers.submission.media_callbacks import (
 )
 from app.handlers.submission.media_handler import submission_media_handler
 from app.handlers.submission.navigation.menu_router import submission_menu_router
+from app.jobs.submission_queue import process_submission_queue
 from app.services.service_factory import ServiceFactory
 from app.states.user_states import UserState
-from app.texts.buttons import SubmissionButtons
 
 
 class BotApplication:
@@ -106,6 +106,16 @@ class BotApplication:
     async def _on_startup(self, application: Application) -> None:
         await self.db_manager.init()
         await application.bot.delete_my_commands()
+
+        if application.job_queue is None:
+            raise RuntimeError("JobQueue is not available")
+
+        application.job_queue.run_repeating(
+            process_submission_queue,
+            interval=60,
+            first=10,
+            name="submission_queue",
+        )
 
     async def _on_shutdown(self, application: Application) -> None:
         await self.db_manager.close()
