@@ -5,14 +5,14 @@ from app.texts.buttons import AdminMainMenuButtons, MainMenuButtons
 USER_MAIN_MENU = ReplyKeyboardMarkup(
     [
         [KeyboardButton(MainMenuButtons.SUBMIT_POST)],
-        [
-            KeyboardButton(MainMenuButtons.GACHA),
-            KeyboardButton(MainMenuButtons.MY_CARDS),
-        ],
-        [
-            KeyboardButton(MainMenuButtons.BALANCE),
-            KeyboardButton(MainMenuButtons.PROFILE),
-        ],
+        # [
+        #     KeyboardButton(MainMenuButtons.GACHA),
+        #     KeyboardButton(MainMenuButtons.MY_CARDS),
+        # ],
+        # [
+        #     KeyboardButton(MainMenuButtons.BALANCE),
+        #     KeyboardButton(MainMenuButtons.PROFILE),
+        # ],
     ],
     resize_keyboard=True,
     is_persistent=False,
