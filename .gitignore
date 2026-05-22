@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.pyo
 *.pyd
+.ruff_cache/
 
 # C extensions
 *.so
@@ -64,7 +65,7 @@ env/
 # Environment variables
 .env
 .env.*
-.envrc
+!.env.example
 
 # IDEs and editors
 .vscode/
@@ -81,6 +82,17 @@ logs/
 *.db
 *.sqlite3
 *.sqlite
+
+# SQLite temporary files
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
 
 # Temporary files
 *.tmp
