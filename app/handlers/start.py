@@ -8,7 +8,7 @@ from app.states.user_states import UserState
 from app.texts.messages import StartMessages
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int | None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     message = update.effective_message
 
@@ -25,8 +25,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int | Non
         )
 
     # Полный сброс, если юзер отправил /start
-    context.user_data.pop("submission_draft", None)
-    context.user_data.pop("submission_awaiting_confirm", None)
+    context.user_data.clear()
 
     is_admin = update.effective_user.id in settings.admin_ids_list
 

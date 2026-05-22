@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 
 from app.config.settings import settings
 from app.database.models.submission import Submission, SubmissionMedia
+from app.handlers.common.session import reset_user_session_to_main_menu
 from app.keyboards.submission import admin_submission_keyboard
 from app.schemas.submission_draft import SubmissionDraft
 from app.services.service_factory import ServiceFactory
@@ -33,16 +34,21 @@ async def submission_confirm_callback(
 
     if parts is None or len(parts) != 3:
         await query.edit_message_text(SubmissionMessages.WRONG_PARTS)
-        return UserState.SUBMISSION
+        return
 
     # формат callback_data: submission:confirm:public или submission:confirm:anon
     # или submission:cancel
     entity, action, visibility = parts
 
-    # если черновика нет, либо отсутствует media_items
+    # если черновика нет, либо отсутствует media_items.
+    # такое может быть если бот был перезапущен а юзер нажал по устаревшим inline.
     if not draft or not draft.get("media_items"):
-        await query.edit_message_text(SubmissionMessages.WRONG_DRAFT)
-        return UserState.SUBMISSION
+        await reset_user_session_to_main_menu(
+            update=update,
+            context=context,
+            text="бот был перезапущен. сессия зажарилась. попробуй еще раз 🙏",
+        )
+        return
 
     is_anonymous = visibility == "anon"
     service_factory: ServiceFactory = context.bot_data["service_factory"]
@@ -77,7 +83,7 @@ async def submission_confirm_callback(
 
     await query.edit_message_text(SubmissionMessages.SENT)
 
-    return UserState.SUBMISSION
+    return
 
 
 async def submission_cancel_callback(

@@ -3,25 +3,21 @@ from telegram.ext import (
     ApplicationBuilder,
     CallbackQueryHandler,
     CommandHandler,
-    ConversationHandler,
     MessageHandler,
     filters,
 )
 
-from app.config import settings
+from app.config.settings import settings
 from app.database.manager import DatabaseManager
-from app.handlers.main_menu_router import main_menu_router
 from app.handlers.start import start
 from app.handlers.submission.admin_callbacks import submission_admin_callback
 from app.handlers.submission.media_callbacks import (
     submission_cancel_callback,
     submission_confirm_callback,
 )
-from app.handlers.submission.media_handler import submission_media_handler
-from app.handlers.submission.navigation.menu_router import submission_menu_router
+from app.handlers.user_state_router import user_state_router
 from app.jobs.submission_queue import process_submission_queue
 from app.services.service_factory import ServiceFactory
-from app.states.user_states import UserState
 
 
 class BotApplication:
@@ -51,55 +47,31 @@ class BotApplication:
         )
 
     def _register_handlers(self) -> None:
-        conversation = ConversationHandler(
-            entry_points=[
-                CommandHandler("start", start),
-                MessageHandler(
-                    filters.TEXT & ~filters.COMMAND,
-                    main_menu_router,
-                ),
-            ],
-            states={
-                UserState.MAIN_MENU: [
-                    MessageHandler(
-                        filters.TEXT & ~filters.COMMAND,
-                        main_menu_router,
-                    ),
-                ],
-                UserState.SUBMISSION: [
-                    MessageHandler(
-                        filters.PHOTO | filters.VIDEO | filters.ANIMATION,
-                        submission_media_handler,
-                    ),
-                    MessageHandler(
-                        filters.TEXT & ~filters.COMMAND,
-                        submission_menu_router,
-                    ),
-                    CallbackQueryHandler(
-                        submission_confirm_callback,
-                        pattern=r"^submission:confirm:",
-                    ),
-                    CallbackQueryHandler(
-                        submission_cancel_callback,
-                        pattern=r"^submission:cancel$",
-                    ),
-                ],
-            },
-            fallbacks=[
-                CommandHandler("start", start),
-            ],
-            # сохранение состояния между перезапусками бота
-            persistent=False,
-            # нужен чтобы работали админские inline кнопки
-            # per_message=False,
+        self.application.add_handler(CommandHandler("start", start))
+        self.application.add_handler(
+            CallbackQueryHandler(
+                submission_confirm_callback,
+                pattern=r"submission:confirm:",
+            )
         )
-
-        self.application.add_handler(conversation)
+        self.application.add_handler(
+            CallbackQueryHandler(
+                submission_cancel_callback,
+                pattern=r"submission:cancel$",
+            )
+        )
 
         self.application.add_handler(
             CallbackQueryHandler(
                 submission_admin_callback,
-                pattern=r"^moderate:",
+                pattern=r"moderate:",
+            )
+        )
+
+        self.application.add_handler(
+            MessageHandler(
+                filters.ALL & ~filters.COMMAND,
+                user_state_router,
             )
         )
 
