@@ -47,7 +47,10 @@ class BotApplication:
         )
 
     def _register_handlers(self) -> None:
-        self.application.add_handler(CommandHandler("start", start))
+        self.application.add_handler(
+            CommandHandler("start", start, filters=filters.ChatType.PRIVATE)
+        )
+
         self.application.add_handler(
             CallbackQueryHandler(
                 submission_confirm_callback,
@@ -70,7 +73,7 @@ class BotApplication:
 
         self.application.add_handler(
             MessageHandler(
-                filters.ALL & ~filters.COMMAND,
+                filters.ChatType.PRIVATE & filters.ALL & ~filters.COMMAND,
                 user_state_router,
             )
         )
