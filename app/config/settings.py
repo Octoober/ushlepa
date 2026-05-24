@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     admin_ids: str
     database_url: str
     queue_interval_minutes: int = 30
+    persistence_path: str = "data/user_data.pkl"
 
     @property
     def admin_ids_list(self) -> list[int]:

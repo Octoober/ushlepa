@@ -9,6 +9,12 @@ from app.texts.messages import StartMessages
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Точка входа в бота. Вызывается при команде /start.
+
+    Так же выполняет функцию регистрации пользователя в БД
+    при первом запуске и сброса сессии при каждом запуске.
+    """
     user = update.effective_user
     message = update.effective_message
 

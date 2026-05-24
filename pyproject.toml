@@ -33,13 +33,14 @@ asyncio_mode = "auto"
 pythonpath = ["."]
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 target-version = "py311"
 src = ["."]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+docstring-code-format = true
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]

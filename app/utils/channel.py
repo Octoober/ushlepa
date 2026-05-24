@@ -1,3 +1,6 @@
+# Утилита для работы с каналом. Например отправляет предложку в канал
+
+
 from html import escape
 
 from telegram import InputMediaPhoto, InputMediaVideo
@@ -7,10 +10,17 @@ from app.config.settings import settings
 from app.database.models.submission import Submission
 
 
-async def publish_submission_to_channel(
+async def submission_publisher(
     context: ContextTypes.DEFAULT_TYPE,
     submission: Submission,
 ) -> None:
+    """
+    Публикует предложку в канал.
+
+    Args:
+        context (ContextTypes.DEFAULT_TYPE): Контекст обработчика.
+        submission (Submission): Предложка для публикации.
+    """
     db_user = submission.user
 
     if submission.is_anonymous:

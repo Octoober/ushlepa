@@ -3,8 +3,7 @@ from collections.abc import Awaitable, Callable
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from app.keyboards.submission import submission_menu_keyboard
-from app.states.user_states import UserState
+from app.handlers.submission.entry import entry_submission_handler
 from app.texts.buttons import MainMenuButtons
 
 MenuAction = Callable[
@@ -13,21 +12,20 @@ MenuAction = Callable[
 ]
 
 
-async def main_menu_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Маршрутизатор для основного ReplyKey"""
+async def main_menu_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Маршрутизатор для основного меню.
+
+    Принимает входящее сообщение и в зависимости от его текста вызывает соответствующий обработчик.
+    Например, если пользователь нажал кнопку "Предложить пост", то
+    вызывается entry_submission_handler
+    """
     message = update.effective_message
     if message is None or message.text is None:
         return
 
     if message.text == MainMenuButtons.SUBMIT_POST:
-        # нажата кнопка "отправить предложку"
-        context.user_data.clear()
-        context.user_data["state"] = UserState.SUBMISSION
-
-        await message.reply_text(
-            "Отправь медиа для предложки",
-            reply_markup=submission_menu_keyboard(),
-        )
+        await entry_submission_handler(update, context)
         return
 
     await message.reply_text("Выбери действие из меню")

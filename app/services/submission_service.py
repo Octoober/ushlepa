@@ -24,6 +24,18 @@ class SubmissionService:
         )
 
     async def queue(self, submission_id: int) -> datetime:
+        """
+        Помещает предложку в очередь на публикацию.
+
+        Args:
+            submission_id (int): ID предложки для постановки в очередь.
+
+        Raises:
+            ValueError: Если предложка с данным ID не найдена.
+
+        Returns:
+            datetime: Время, когда предложка будет опубликована.
+        """
         submission = await self.repo.get_by_id(submission_id)
 
         if submission is None:

@@ -24,5 +24,5 @@ class SubmissionButtons:
 
 class ModerationButtons:
     PUBLISH_NOW = "Опубликовать"
-    QUEUE = "В очередь"
+    QUEUE = "В очередь ({interval_minutes} мин)"
     REJECT = "Отклонить"

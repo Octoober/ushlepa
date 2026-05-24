@@ -1,10 +1,16 @@
 from telegram.ext import ContextTypes
 
-from app.handlers.submission.submission_publisher import publish_submission_to_channel
 from app.services.service_factory import ServiceFactory
+from app.utils.channel import submission_publisher
 
 
 async def process_submission_queue(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Обрабатывает очередь предложок, публикуя их в канал, если пришло их время.
+
+    Args:
+        context (ContextTypes.DEFAULT_TYPE): Контекст обработчика.
+    """
     service_factory: ServiceFactory = context.bot_data["service_factory"]
 
     async with service_factory.create() as services:
@@ -13,5 +19,5 @@ async def process_submission_queue(context: ContextTypes.DEFAULT_TYPE) -> None:
         if submission is None:
             return
 
-        await publish_submission_to_channel(context, submission)
+        await submission_publisher(context, submission)
         await services.submissions.mark_published(submission)

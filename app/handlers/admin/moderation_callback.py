@@ -2,17 +2,21 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from app.config.settings import settings
-from app.handlers.submission.submission_publisher import publish_submission_to_channel
-from app.helpers import format_publish_time_jst
 from app.services.service_factory import ServiceFactory
 from app.texts.messages import ModerationMessage
+from app.utils.channel import submission_publisher
+from app.utils.formatter import format_publish_time
 
 
 async def submission_admin_callback(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
 ) -> None:
-    """Управление предложкой со стороны админа."""
+    """
+    Обрабатывает нажатия на кнопки в админке для управления предложками.
+    Например, если админ нажал "поставить в очередь",
+    "опубликовать", "отклонить" или "убрать из очереди".
+    """
     query = update.callback_query
     user = update.effective_user
 
@@ -38,13 +42,11 @@ async def submission_admin_callback(
     async with service_factory.create() as services:
         if action == "queue":
             publish_at = await services.submissions.queue(submission_id)
-            status_text = (
-                f"{ModerationMessage.QUEUED} {format_publish_time_jst(publish_at)}"
-            )
+            status_text = f"{ModerationMessage.QUEUED} {format_publish_time(publish_at)}"
 
         elif action == "publish":
             submission = await services.submissions.get_for_publication(submission_id)
-            await publish_submission_to_channel(context, submission)
+            await submission_publisher(context, submission)
             await services.submissions.mark_published(submission)
             status_text = ModerationMessage.PUBLISHED
 

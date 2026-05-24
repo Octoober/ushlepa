@@ -38,11 +38,14 @@ def user_submission_confirm_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-def admin_submission_keyboard(submission_id: int) -> InlineKeyboardMarkup:
+def admin_submission_keyboard(
+    submission_id: int, queue_interval_minutes: int
+) -> InlineKeyboardMarkup:
     """Инлайн кнопки для модерации предложки.
 
     Args:
         submission_id (int): ID конкретной предложки.
+        queue_interval_minutes (int): Интервал очереди в минутах.
 
     Returns:
         InlineKeyboardMarkup: Инлайн кнопки.
@@ -51,7 +54,7 @@ def admin_submission_keyboard(submission_id: int) -> InlineKeyboardMarkup:
         [
             [
                 InlineKeyboardButton(
-                    text=ModerationButtons.QUEUE,
+                    text=ModerationButtons.QUEUE.format(interval_minutes=queue_interval_minutes),
                     callback_data=f"moderate:{submission_id}:queue",
                 )
             ],

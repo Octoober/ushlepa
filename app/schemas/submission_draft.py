@@ -14,3 +14,4 @@ class SubmissionDraft(TypedDict):
 
     caption: str | None
     media_items: list[MediaItemDraft]
+    last_message_id: int | None
