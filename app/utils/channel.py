@@ -33,7 +33,8 @@ async def submission_publisher(
             display_name = f'<a href="https://t.me/{username}">{display_name}</a>'
 
     user_text = f"{escape(submission.caption)}\n\n" if submission.caption else ""
-    caption = f"{user_text}💬 {display_name}"
+    bot_link = f'<a href="https://t.me/{settings.bot_name}">💬</a>' if settings.bot_name else "💬"
+    caption = f"{user_text}{bot_link} {display_name}"
 
     media_items = submission.media_items
 

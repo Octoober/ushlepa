@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     channel_name: str
     admin_ids: str
     database_url: str
+    bot_name: str | None = None
     queue_interval_minutes: int = 30
     persistence_path: str = "data/user_data.pkl"
 
