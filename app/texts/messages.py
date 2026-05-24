@@ -33,3 +33,8 @@ class ModerationMessage:
     PUBLISHED = "Опубликована"
     NO_ACCESS = "Нет доступа"
     UNKNOWN_ACTION = "Неизвестное действие"
+
+
+class CommonMessages:
+    ERROR = "Что-то пошло не так. Попробуй еще раз."
+    RATE_LIMIT_WARNING = "Сенпай, слишком быстро! Подожди еще {seconds} секунд."

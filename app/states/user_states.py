@@ -5,3 +5,4 @@ class UserState(StrEnum):
     MAIN_MENU = "main_menu"
     SUBMISSION = "submission"
     ADMIN_PANEL = "admin_panel"
+    ADMIN_SUBMISSION = "admin_submission"

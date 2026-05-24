@@ -7,10 +7,12 @@ from app.handlers.submission.media_handler import submission_media_handler
 from app.keyboards.main_menu import build_main_menu
 from app.states.user_states import UserState
 from app.texts.buttons import SubmissionButtons
-from app.texts.messages import SubmissionMessages
+from app.texts.messages import CommonMessages, SubmissionMessages
+from app.utils.rate_limit import rate_limit
 from app.utils.user_state import get_user_state
 
 
+@rate_limit(key="state_router", cooldown=3, warning_message=CommonMessages.RATE_LIMIT_WARNING)
 async def state_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.effective_message
     if message is None:

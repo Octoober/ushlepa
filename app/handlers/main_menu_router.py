@@ -5,6 +5,8 @@ from telegram.ext import ContextTypes
 
 from app.handlers.submission.entry import entry_submission_handler
 from app.texts.buttons import MainMenuButtons
+from app.texts.messages import CommonMessages
+from app.utils.rate_limit import rate_limit
 
 MenuAction = Callable[
     [Update, ContextTypes.DEFAULT_TYPE],
@@ -12,6 +14,7 @@ MenuAction = Callable[
 ]
 
 
+@rate_limit(key="main_menu", cooldown=1, warning_message=CommonMessages.RATE_LIMIT_WARNING)
 async def main_menu_router(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Маршрутизатор для основного меню.

@@ -5,9 +5,13 @@ from app.config.settings import settings
 from app.keyboards.main_menu import build_main_menu
 from app.services.service_factory import ServiceFactory
 from app.states.user_states import UserState
-from app.texts.messages import StartMessages
+from app.texts.messages import CommonMessages, StartMessages
+from app.utils.rate_limit import rate_limit
+from app.utils.submission_draft import clear_submission_data
+from app.utils.user_state import reset_user_state
 
 
+@rate_limit(key="start", cooldown=30, warning_message=CommonMessages.RATE_LIMIT_WARNING)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
     Точка входа в бота. Вызывается при команде /start.
@@ -30,8 +34,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             username=user.username,
         )
 
-    # Полный сброс, если юзер отправил /start
-    context.user_data.clear()
+    # не использовать полный сброс потому что это ломает rate_limit
+    # context.user_data.clear()
+
+    clear_submission_data(context)
+    reset_user_state(context)
 
     is_admin = update.effective_user.id in settings.admin_ids_list
 
